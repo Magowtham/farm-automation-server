@@ -44,6 +44,10 @@ const io = require("socket.io")(server, {
   }
 })();
 
+app.get("/test", (req, res) => {
+  res.send("hello world");
+});
+
 server.listen(PORT, () => {
   console.log(`server is running on port: ${PORT}`);
 });
