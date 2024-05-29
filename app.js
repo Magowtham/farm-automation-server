@@ -46,7 +46,7 @@ const io = require("socket.io")(server, {
 })();
 
 app.get("/test", (req, res) => {
-  res.send("hello world");
+  res.send("hello world to all");
 });
 
 server.listen(PORT, HOST, () => {
