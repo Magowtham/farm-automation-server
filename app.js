@@ -9,7 +9,8 @@ dotEnv.config();
 
 const app = express();
 
-const PORT = process.env.HTTP_SERVER_PORT;
+const HOST = "0.0.0.0";
+const PORT = process.env.PORT || 5000;
 
 //middlewares
 app.use(express.static(__dirname + "/views"));
@@ -48,7 +49,7 @@ app.get("/test", (req, res) => {
   res.send("hello world");
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, HOST, () => {
   console.log(`server is running on port: ${PORT}`);
 });
 
