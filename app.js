@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const dotEnv = require("dotenv");
 const connectToDb = require("./db/db_connect");
+require("./tcp/tcp_server");
 const { socketHandler } = require("./routes/socket");
 
 dotEnv.config();
@@ -10,7 +11,7 @@ dotEnv.config();
 const app = express();
 
 const HOST = "0.0.0.0";
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 9000;
 
 //middlewares
 app.use(express.static(__dirname + "/views"));
@@ -38,7 +39,9 @@ const io = require("socket.io")(server, {
   try {
     await connectToDb();
     console.log("connected to database");
-    io.on("connection", socketHandler);
+    const tcpClient = require("./tcp/tcp_client");
+    io.on("connection", (socket) => socketHandler(socket, tcpClient));
+
     app.use("/api", require("./routes/http"));
   } catch (error) {
     console.log("Database connection failed");

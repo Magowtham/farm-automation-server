@@ -1,7 +1,8 @@
 const controller = require("../controllers/socket/socket");
 
-const socketHandler = (socket) => {
+const socketHandler = (socket, tcpClient) => {
   controller.handleConnect();
+
   socket.on("disconnect", () => controller.handleDisconnect());
   socket.on("drip-motor", (data) => controller.handleDripMotor(data));
   socket.on("fog-motor", (data) => controller.handleFogMotor(data));

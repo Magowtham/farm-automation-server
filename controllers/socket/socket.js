@@ -4,7 +4,12 @@ const UserModel = require("../../models/user_model");
 const NotificationModel = require("../../models/notification_model");
 const emailSender = require("../../utils/send_email");
 
+const net = require("net");
+
 const { mqttPublisher } = require("../../mqtt_broker/broker");
+
+const client = new net.Socket();
+const CustomEventEmitter = new EventEmitter();
 
 const months = [
   "Jan",
@@ -21,8 +26,7 @@ const months = [
   "Dec",
 ];
 
-const CustomEventEmitter = new EventEmitter();
-
+console.log("hello");
 CustomEventEmitter.on("send_notification", async (data) => {
   try {
     const io = require("../../app");
