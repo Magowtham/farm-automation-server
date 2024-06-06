@@ -3,7 +3,6 @@ const express = require("express");
 const cors = require("cors");
 const dotEnv = require("dotenv");
 const connectToDb = require("./db/db_connect");
-require("./tcp/tcp_server");
 const { socketHandler } = require("./routes/socket");
 
 dotEnv.config();
@@ -39,21 +38,14 @@ const io = require("socket.io")(server, {
   try {
     await connectToDb();
     console.log("connected to database");
-    const tcpClient = require("./tcp/tcp_client");
-    io.on("connection", (socket) => socketHandler(socket, tcpClient));
-
+    io.on("connection", socketHandler);
     app.use("/api", require("./routes/http"));
+    require("./mqtt/broker");
   } catch (error) {
     console.log("Database connection failed");
   }
 })();
 
-app.get("/test", (req, res) => {
-  res.send("hello world to all");
-});
-
 server.listen(PORT, HOST, () => {
   console.log(`server is running on port: ${PORT}`);
 });
-
-module.exports = io;

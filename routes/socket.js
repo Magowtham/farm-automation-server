@@ -1,13 +1,19 @@
 const controller = require("../controllers/socket/socket");
 
-const socketHandler = (socket, tcpClient) => {
+const socketHandler = (socket) => {
   controller.handleConnect();
 
-  socket.on("disconnect", () => controller.handleDisconnect());
-  socket.on("drip-motor", (data) => controller.handleDripMotor(data));
-  socket.on("fog-motor", (data) => controller.handleFogMotor(data));
-  socket.on("cooler-motor", (data) => controller.handleCoolerPadMotor(data));
-  socket.on("valve", (data) => controller.handleValve(data));
+  socket.on("disconnect", controller.handleDisconnect);
+  socket.on("drip-motor", controller.handleDripMotor);
+  socket.on("fog-motor", controller.handleFogMotor);
+  socket.on("cooler-motor", controller.handleCoolerPadMotor);
+  socket.on("valve", controller.handleValve);
+  socket.on("node-iot-control-ack", (data) =>
+    controller.handleNodeAcknowledgement(data, socket)
+  );
+  socket.on("node-mannual-control", (data) =>
+    controller.handleNodeMannualControl(data, socket)
+  );
 };
 
 module.exports = { socketHandler };

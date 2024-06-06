@@ -4,11 +4,8 @@ const UserModel = require("../../models/user_model");
 const NotificationModel = require("../../models/notification_model");
 const emailSender = require("../../utils/send_email");
 
-const net = require("net");
+const mqtt_client = require("../../mqtt/client");
 
-const { mqttPublisher } = require("../../mqtt_broker/broker");
-
-const client = new net.Socket();
 const CustomEventEmitter = new EventEmitter();
 
 const months = [
@@ -26,7 +23,6 @@ const months = [
   "Dec",
 ];
 
-console.log("hello");
 CustomEventEmitter.on("send_notification", async (data) => {
   try {
     const io = require("../../app");
@@ -92,7 +88,7 @@ const handleDisconnect = () => {
 
 const handleDripMotor = (data) => {
   try {
-    mqttPublisher(data);
+    mqtt_client.publish("anmaya_iot1.0", JSON.stringify(data));
   } catch (error) {
     console.log(error);
   }
@@ -100,7 +96,7 @@ const handleDripMotor = (data) => {
 
 const handleFogMotor = (data) => {
   try {
-    mqttPublisher(data);
+    mqtt_client.publish("anmaya_iot1.0", JSON.stringify(data));
   } catch (error) {
     console.log(error);
   }
@@ -108,7 +104,7 @@ const handleFogMotor = (data) => {
 
 const handleCoolerPadMotor = (data) => {
   try {
-    mqttPublisher(data);
+    mqtt_client.publish("anmaya_iot1.0", JSON.stringify(data));
   } catch (error) {
     console.log(error);
   }
@@ -116,19 +112,39 @@ const handleCoolerPadMotor = (data) => {
 
 const handleValve = (data) => {
   try {
-    mqttPublisher(data);
+    mqtt_client.publish("anmaya_iot1.0", JSON.stringify(data));
   } catch (error) {
     console.log(error);
   }
 };
 
-const handleNodeAcknowledgement = async (data) => {
-  const io = require("../../app");
+const handleNodeAcknowledgement = async (data, socket) => {
+  console.log("***");
+  console.log(data);
   try {
-    const { node_name, state } = JSON.parse(data);
-    await NodeModel.updateOne({ name: node_name }, { $set: { state: state } });
-    CustomEventEmitter.emit("send_notification", data);
-    io.emit("node-acknowledgement", { nodeName: node_name, state: state });
+    const { nodeName, state } = JSON.parse(data);
+    await NodeModel.updateOne({ name: nodeName }, { $set: { state: state } });
+    //CustomEventEmitter.emit("send_notification", data);
+    socket.broadcast.emit("adminpanel-acknowledgement", {
+      nodeName: nodeName,
+      state: state,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const handleNodeMannualControl = async (data, socket) => {
+  try {
+    const { nodeName, nodeState } = JSON.parse(data);
+    await NodeModel.updateOne(
+      { name: nodeName },
+      { $set: { state: nodeState } }
+    );
+    socket.broadcast.emit("node-mannual-control", {
+      nodeName: nodeName,
+      nodeState: nodeState,
+    });
   } catch (error) {
     console.log(error);
   }
@@ -142,4 +158,5 @@ module.exports = {
   handleCoolerPadMotor,
   handleValve,
   handleNodeAcknowledgement,
+  handleNodeMannualControl,
 };

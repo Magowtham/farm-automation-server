@@ -1,6 +1,7 @@
 const aedes = require("aedes")();
 const server = require("net").createServer(aedes.handle);
 const dotEnv = require("dotenv");
+const socket = require("../controllers/socket/socket_client");
 
 dotEnv.config();
 
@@ -19,25 +20,13 @@ aedes.on("subscribe", (client) => {
 });
 
 aedes.on("publish", (packete, client) => {
-  if (packete.topic === "broker") {
-    const {
-      handleNodeAcknowledgement,
-    } = require("../controllers/socket/socket");
-    const data = packete.payload.toString();
-    handleNodeAcknowledgement(data);
+  if (packete.topic === "iot_control_ack") {
+    socket.emit("node-iot-control-ack", packete.payload.toString());
+  }
+  if (packete.topic === "mannual_control") {
+    socket.emit("node-mannual-control", packete.payload.toString());
   }
 });
-
-const mqttPublisher = (data) => {
-  aedes.publish({
-    topic: "device1",
-    payload: JSON.stringify({
-      userId: data.userId,
-      nodeName: data.nodeName,
-      state: data.state,
-    }),
-  });
-};
 
 server.listen(MQTT_BROKER_PORT, () => {
   console.log(`MQTT broker listening on: ${MQTT_BROKER_PORT}`);
