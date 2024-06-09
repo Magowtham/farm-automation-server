@@ -35,6 +35,10 @@ routes.get(
   "/delete_notification/:notification_id",
   require("../controllers/http/delete_notification")
 );
+routes.get(
+  "/device_status/:device_id",
+  require("../controllers/http/check_device_status")
+);
 routes.get("/user_logout", require("../controllers/http/user_logout"));
 
 module.exports = routes;

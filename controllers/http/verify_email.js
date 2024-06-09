@@ -4,6 +4,7 @@ const UserModel = require("../../models/user_model");
 const FarmModel = require("../../models/farm_model");
 const accountAproveTemplate = require("../../utils/account_aprove_template");
 const sendEmail = require("../../utils/send_email");
+const socket_client = require("../socket/socket_client");
 
 const verifyEmail = async (req, res) => {
   try {
@@ -32,8 +33,6 @@ const verifyEmail = async (req, res) => {
       farm_name: 1,
     });
 
-    const io = require("../../app");
-
     const template = accountAproveTemplate(
       id,
       result.userName,
@@ -43,7 +42,7 @@ const verifyEmail = async (req, res) => {
     );
 
     await sendEmail("magowtham7@gmail.com", "Account Aprove", template);
-    io.emit("email-verified", { userId: id });
+    socket_client.emit("email-verified", { userId: id });
 
     res.sendFile(
       path.join(

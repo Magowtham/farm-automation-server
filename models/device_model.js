@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const DeviceSchema = new mongoose.Schema({
   device_name: { type: String, required: true, unique: true },
+  device_status: { type: Boolean, required: false, default: false },
   farm_id: { type: String, required: true },
   connected_nodes: { type: Array, required: false, default: [] },
   available_node_pins: {

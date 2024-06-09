@@ -10,6 +10,7 @@ const getDevices = async (req, res) => {
     devices = devices.map((device) => ({
       device_id: device._id.toString(),
       device_name: device.device_name,
+      device_status: device.device_status,
       farm_id: device.farm_id,
       connected_nodes_length: device.connected_nodes.length,
       power_consumption: device.power_consumption,

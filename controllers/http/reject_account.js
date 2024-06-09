@@ -1,5 +1,6 @@
 const path = require("path");
 const UserModel = require("../../models/user_model");
+const socket_client = require("../socket/socket_client");
 const rejectAccount = async (req, res) => {
   try {
     const { id } = req.params;
@@ -15,8 +16,8 @@ const rejectAccount = async (req, res) => {
       return;
     }
     await UserModel.findByIdAndDelete(id);
-    const io = require("../../app");
-    io.emit("account-rejected", { userId: id });
+
+    socket_client.emit("account-rejected", { userId: id });
     res.sendFile(
       path.join(__dirname, "..", "..", "views", "user_account_reject.html")
     );

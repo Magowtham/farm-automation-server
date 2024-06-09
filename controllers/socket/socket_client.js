@@ -14,4 +14,8 @@ socket.on("data", (data) => {
   console.log(data);
 });
 
+socket.on("error", (error) => {
+  console.log(error);
+});
+
 module.exports = socket;

@@ -1,82 +1,9 @@
-const EventEmitter = require("events");
+const DeviceModel = require("../../models/device_model");
 const NodeModel = require("../../models/node_model");
-const UserModel = require("../../models/user_model");
-const NotificationModel = require("../../models/notification_model");
 const emailSender = require("../../utils/send_email");
-
 const mqtt_client = require("../../mqtt/client");
 
-const CustomEventEmitter = new EventEmitter();
-
-const months = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
-CustomEventEmitter.on("send_notification", async (data) => {
-  try {
-    const io = require("../../app");
-    const parsedData = JSON.parse(data);
-    const userId = parsedData.user_id;
-
-    if (userId) {
-      const now = new Date();
-      const formattedDate = `${
-        months[now.getMonth()]
-      } ${now.getDate()}, ${now.getFullYear()}`;
-
-      let hours = now.getHours();
-      let minutes = now.getMinutes();
-
-      const amOrPm = hours >= 12 ? "pm" : "am";
-
-      hours = hours % 12;
-      hours = hours ? hours : 12;
-
-      minutes = minutes < 10 ? "0" + minutes : minutes;
-
-      const formattedTime = `${hours}:${minutes} ${amOrPm}`;
-
-      const users = await UserModel.find({}, { fullName: 1 });
-
-      let fullName = "";
-
-      users.forEach((user) => {
-        if (user._id.toString() === userId) {
-          fullName = user.fullName;
-        }
-      });
-
-      users.forEach(async (user) => {
-        const id = user._id.toString();
-        if (id !== userId) {
-          await NotificationModel({
-            userId: id,
-            userFullName: fullName,
-            nodeName: parsedData.node_name,
-            state: parsedData.state,
-            date: formattedDate,
-            time: formattedTime,
-          }).save();
-        }
-      });
-
-      io.emit("notification");
-    }
-  } catch (error) {
-    console.log(error);
-  }
-});
+const client_topic = "unit1";
 
 const handleConnect = () => {
   console.log("connected to socket");
@@ -86,45 +13,71 @@ const handleDisconnect = () => {
   console.log("disconnected from socket");
 };
 
-const handleDripMotor = (data) => {
+const handleDripMotor = async (data, socket) => {
   try {
-    mqtt_client.publish("anmaya_iot1.0", JSON.stringify(data));
+    const result = await DeviceModel.findById(data.deviceId, {
+      device_status: 1,
+    });
+    if (result.device_status) {
+      mqtt_client.publish(client_topic, JSON.stringify(data));
+    } else {
+      socket.emit("unit-disconnected");
+    }
   } catch (error) {
     console.log(error);
   }
 };
 
-const handleFogMotor = (data) => {
+const handleFogMotor = async (data, socket) => {
   try {
-    mqtt_client.publish("anmaya_iot1.0", JSON.stringify(data));
+    const result = await DeviceModel.findById(data.deviceId, {
+      device_status: 1,
+    });
+    if (result.device_status) {
+      mqtt_client.publish(client_topic, JSON.stringify(data));
+    } else {
+      socket.emit("unit-disconnected");
+    }
   } catch (error) {
     console.log(error);
   }
 };
 
-const handleCoolerPadMotor = (data) => {
+const handleCoolerPadMotor = async (data, socket) => {
   try {
-    mqtt_client.publish("anmaya_iot1.0", JSON.stringify(data));
+    const result = await DeviceModel.findById(data.deviceId, {
+      device_status: 1,
+    });
+    if (result.device_status) {
+      mqtt_client.publish(client_topic, JSON.stringify(data));
+    } else {
+      socket.emit("unit-disconnected");
+    }
   } catch (error) {
     console.log(error);
   }
 };
 
-const handleValve = (data) => {
+const handleValve = async (data, socket) => {
   try {
-    mqtt_client.publish("anmaya_iot1.0", JSON.stringify(data));
+    const result = await DeviceModel.findById(data.deviceId, {
+      device_status: 1,
+    });
+    if (result.device_status) {
+      mqtt_client.publish(client_topic, JSON.stringify(data));
+    } else {
+      socket.emit("unit-disconnected");
+    }
   } catch (error) {
     console.log(error);
   }
 };
 
 const handleNodeAcknowledgement = async (data, socket) => {
-  console.log("***");
-  console.log(data);
   try {
     const { nodeName, state } = JSON.parse(data);
     await NodeModel.updateOne({ name: nodeName }, { $set: { state: state } });
-    //CustomEventEmitter.emit("send_notification", data);
+    //socket_client.emit("notification", data);
     socket.broadcast.emit("adminpanel-acknowledgement", {
       nodeName: nodeName,
       state: state,
@@ -150,6 +103,30 @@ const handleNodeMannualControl = async (data, socket) => {
   }
 };
 
+const handleAccountApproved = (data, socket) => {
+  try {
+    socket.broadcast.emit("account-aproved", data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const handleAccountRejected = (data, socket) => {
+  try {
+    socket.broadcast.emit("account-rejected", data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const handleEmailVerified = (data, socket) => {
+  try {
+    socket.broadcast.emit("email-verified", data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 module.exports = {
   handleConnect,
   handleDisconnect,
@@ -159,4 +136,7 @@ module.exports = {
   handleValve,
   handleNodeAcknowledgement,
   handleNodeMannualControl,
+  handleAccountApproved,
+  handleAccountRejected,
+  handleEmailVerified,
 };

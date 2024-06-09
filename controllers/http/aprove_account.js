@@ -1,5 +1,6 @@
 const path = require("path");
 const UserModel = require("../../models/user_model");
+const socket_client = require("../socket/socket_client");
 const aproveAccount = async (req, res) => {
   try {
     const { id } = req.params;
@@ -9,8 +10,8 @@ const aproveAccount = async (req, res) => {
       return;
     }
     await UserModel.findByIdAndUpdate(id, { $set: { accountAproved: true } });
-    const io = require("../../app");
-    io.emit("account-aproved", { userId: id });
+
+    socket_client.emit("account-aproved", { userId: id });
     res.sendFile(
       path.join(__dirname, "..", "..", "views", "user_account_aprove.html")
     );
