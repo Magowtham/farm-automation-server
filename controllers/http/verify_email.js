@@ -5,6 +5,7 @@ const FarmModel = require("../../models/farm_model");
 const accountAproveTemplate = require("../../utils/account_aprove_template");
 const sendEmail = require("../../utils/send_email");
 const socket_client = require("../socket/socket_client");
+const { access } = require("fs");
 
 const verifyEmail = async (req, res) => {
   try {
@@ -54,6 +55,7 @@ const verifyEmail = async (req, res) => {
       )
     );
   } catch (error) {
+    console.log(error);
     res.status(500).send("internal server error");
   }
 };
