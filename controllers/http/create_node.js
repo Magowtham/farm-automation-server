@@ -39,8 +39,11 @@ const createNode = async (req, res) => {
 
     const event = `${deviceId}-${name.replace(/\s+/g, "").toLowerCase()}`;
 
+    const docCount = await NodeModel.countDocuments();
+
     const newNode = new NodeModel({
       name: name,
+      relay_id: docCount + 1,
       device_id: deviceId,
       node_pin: nodePin,
       node_manual_control_pin: nodeManualControlPin,

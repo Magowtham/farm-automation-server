@@ -3,7 +3,7 @@ const NodeModel = require("../../models/node_model");
 const emailSender = require("../../utils/send_email");
 const mqtt_client = require("../../mqtt/client");
 
-const client_topic = "unit1";
+const client_topic = "anmaya@2024unit1";
 
 const handleConnect = () => {
   console.log("connected to socket");
@@ -13,7 +13,7 @@ const handleDisconnect = () => {
   console.log("disconnected from socket");
 };
 
-const handleDripMotor = async (data, socket) => {
+const handleIotControl = async (data, socket) => {
   try {
     const result = await DeviceModel.findById(data.deviceId, {
       device_status: 1,
@@ -28,58 +28,17 @@ const handleDripMotor = async (data, socket) => {
   }
 };
 
-const handleFogMotor = async (data, socket) => {
+const handleIotControlAck = async (data, socket) => {
   try {
-    const result = await DeviceModel.findById(data.deviceId, {
-      device_status: 1,
-    });
-    if (result.device_status) {
-      mqtt_client.publish(client_topic, JSON.stringify(data));
-    } else {
-      socket.emit("unit-disconnected");
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-const handleCoolerPadMotor = async (data, socket) => {
-  try {
-    const result = await DeviceModel.findById(data.deviceId, {
-      device_status: 1,
-    });
-    if (result.device_status) {
-      mqtt_client.publish(client_topic, JSON.stringify(data));
-    } else {
-      socket.emit("unit-disconnected");
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-const handleValve = async (data, socket) => {
-  try {
-    const result = await DeviceModel.findById(data.deviceId, {
-      device_status: 1,
-    });
-    if (result.device_status) {
-      mqtt_client.publish(client_topic, JSON.stringify(data));
-    } else {
-      socket.emit("unit-disconnected");
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-const handleNodeAcknowledgement = async (data, socket) => {
-  try {
-    const { nodeName, state } = JSON.parse(data);
-    await NodeModel.updateOne({ name: nodeName }, { $set: { state: state } });
+    const { deviceId, relayId, state } = JSON.parse(data);
+    await NodeModel.updateOne(
+      { device_id: deviceId, relay_id: relayId },
+      { $set: { state: state } }
+    );
     //socket_client.emit("notification", data);
     socket.broadcast.emit("adminpanel-acknowledgement", {
-      nodeName: nodeName,
+      deviceId: deviceId,
+      relayId: relayId,
       state: state,
     });
   } catch (error) {
@@ -87,17 +46,40 @@ const handleNodeAcknowledgement = async (data, socket) => {
   }
 };
 
-const handleNodeMannualControl = async (data, socket) => {
+const handleRelaysState = async (data, socket) => {
   try {
-    const { nodeName, nodeState } = JSON.parse(data);
-    await NodeModel.updateOne(
-      { name: nodeName },
-      { $set: { state: nodeState } }
+    const {
+      client_id,
+      relay1_state,
+      relay2_state,
+      relay3_state,
+      relay4_state,
+    } = JSON.parse(data);
+
+    const device = await DeviceModel.findOne(
+      { device_id: client_id },
+      { _id: 1 }
     );
-    socket.broadcast.emit("node-mannual-control", {
-      nodeName: nodeName,
-      nodeState: nodeState,
-    });
+
+    const deviceId = device._id.toString();
+    if (device) {
+      await NodeModel.updateOne(
+        { device_id: deviceId, relay_id: 1 },
+        { $set: { state: relay1_state } }
+      );
+      await NodeModel.updateOne(
+        { device_id: deviceId, relay_id: 2 },
+        { $set: { state: relay2_state } }
+      );
+      await NodeModel.updateOne(
+        { device_id: deviceId, relay_id: 3 },
+        { $set: { state: relay3_state } }
+      );
+      await NodeModel.updateOne(
+        { device_id: deviceId, relay_id: 4 },
+        { $set: { state: relay4_state } }
+      );
+    }
   } catch (error) {
     console.log(error);
   }
@@ -130,12 +112,9 @@ const handleEmailVerified = (data, socket) => {
 module.exports = {
   handleConnect,
   handleDisconnect,
-  handleDripMotor,
-  handleFogMotor,
-  handleCoolerPadMotor,
-  handleValve,
-  handleNodeAcknowledgement,
-  handleNodeMannualControl,
+  handleIotControl,
+  handleIotControlAck,
+  handleRelaysState,
   handleAccountApproved,
   handleAccountRejected,
   handleEmailVerified,

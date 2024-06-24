@@ -5,7 +5,6 @@ const deleteNotification = async (req, res) => {
     await NotificationModel.findByIdAndDelete(notification_id);
     res.status(200).json({ message: "notification deleted" });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "internal server error" });
   }
 };

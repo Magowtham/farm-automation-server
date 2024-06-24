@@ -16,7 +16,7 @@ aedes.on("clientDisconnect", async (client) => {
   try {
     console.log(`${client.id} disconnected from the MQTT server`);
     await DeviceModel.updateOne(
-      { device_name: client.id },
+      { device_id: client.id },
       { $set: { device_status: false } }
     );
   } catch (error) {
@@ -28,7 +28,7 @@ aedes.on("subscribe", async ([client]) => {
   console.log("client subscribe to MQTT");
   try {
     await DeviceModel.updateOne(
-      { device_name: client.topic },
+      { device_id: client.topic },
       { $set: { device_status: true } }
     );
   } catch (error) {
@@ -38,10 +38,10 @@ aedes.on("subscribe", async ([client]) => {
 
 aedes.on("publish", (packete, client) => {
   if (packete.topic === "iot_control_ack") {
-    socket.emit("node-iot-control-ack", packete.payload.toString());
+    socket.emit("iot-control-ack", packete.payload.toString());
   }
-  if (packete.topic === "mannual_control") {
-    socket.emit("node-mannual-control", packete.payload.toString());
+  if (packete.topic === "relays_state") {
+    socket.emit("relays_state", packete.payload.toString());
   }
 });
 

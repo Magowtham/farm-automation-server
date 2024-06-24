@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const NodeSchema = new mongoose.Schema({
   name: { type: String, required: true },
+  relay_id: { type: Number, required: true, unique: true },
   device_id: { type: String, required: true },
   node_pin: { type: String, required: true },
   node_manual_control_pin: { type: String, required: true },
