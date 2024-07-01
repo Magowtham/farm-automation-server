@@ -1,5 +1,6 @@
 const DeviceModel = require("../../models/device_model");
 const NodeModel = require("../../models/node_model");
+const DeviceLogsModel = require("../../models/device_logs");
 const emailSender = require("../../utils/send_email");
 const mqtt_client = require("../../mqtt/client");
 
@@ -56,27 +57,49 @@ const handleRelaysState = async (data, socket) => {
       relay4_state,
     } = JSON.parse(data);
 
+    //searching for a unit to get its document id
     const device = await DeviceModel.findOne(
       { device_id: client_id },
       { _id: 1 }
     );
 
-    const deviceId = device._id.toString();
     if (device) {
+      const deviceId = device._id.toString();
+
+      //updating the nodes state
       await NodeModel.updateOne(
-        { device_id: deviceId, relay_id: 1 },
+        {
+          device_id: deviceId,
+          relay_id: 1,
+          state: { $ne: relay1_state },
+        },
         { $set: { state: relay1_state } }
       );
+
       await NodeModel.updateOne(
-        { device_id: deviceId, relay_id: 2 },
+        {
+          device_id: deviceId,
+          relay_id: 2,
+          state: { $ne: relay2_state },
+        },
         { $set: { state: relay2_state } }
       );
+
       await NodeModel.updateOne(
-        { device_id: deviceId, relay_id: 3 },
+        {
+          device_id: deviceId,
+          relay_id: 3,
+          state: { $ne: relay3_state },
+        },
         { $set: { state: relay3_state } }
       );
+
       await NodeModel.updateOne(
-        { device_id: deviceId, relay_id: 4 },
+        {
+          device_id: deviceId,
+          relay_id: 4,
+          state: { $ne: relay4_state },
+        },
         { $set: { state: relay4_state } }
       );
     }

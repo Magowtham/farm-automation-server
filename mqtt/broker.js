@@ -3,6 +3,7 @@ const server = require("net").createServer(aedes.handle);
 const dotEnv = require("dotenv");
 const socket = require("../controllers/socket/socket_client");
 const DeviceModel = require("../models/device_model");
+const dataLogger = require("./logger");
 
 dotEnv.config();
 
@@ -36,7 +37,7 @@ aedes.on("subscribe", async ([client]) => {
   }
 });
 
-aedes.on("publish", (packete, client) => {
+aedes.on("publish", async (packete, client) => {
   if (packete.topic === "iot_control_ack") {
     socket.emit("iot-control-ack", packete.payload.toString());
   }
